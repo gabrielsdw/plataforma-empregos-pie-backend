@@ -11,7 +11,16 @@ class AuthRepository extends BaseRepository
 {
     public function login(array $data)
     {
-        $token = auth('api')->attempt($data);
+        $credentials = [
+            'email' => $data['email'],
+            'password' => $data['password'],
+        ];
+
+        if (!empty($data['audience'])) {
+            $credentials['role'] = $data['audience'];
+        }
+
+        $token = auth('api')->attempt($credentials);
 
         if (!$token) {
             static::$hasError = true;

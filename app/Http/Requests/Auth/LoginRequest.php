@@ -1,10 +1,12 @@
 <?php
 
-declare(strict_types=1);    
+declare(strict_types=1);
+
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class LoginRequest extends FormRequest
 {
@@ -14,6 +16,15 @@ class LoginRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $audience = $this->input('audience');
+
+        if ($audience === 'employer') {
+            $this->merge(['audience' => 'business']);
+        }
     }
 
     /**
@@ -26,6 +37,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'audience' => ['nullable', 'string', Rule::in(['candidate', 'business'])],
         ];
     }
 }

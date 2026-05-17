@@ -14,6 +14,15 @@ class RegisterCandidateRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('passwordConfirmation') && !$this->filled('password_confirmation')) {
+            $this->merge([
+                'password_confirmation' => $this->input('passwordConfirmation'),
+            ]);
+        }
+    }
+
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -24,7 +33,7 @@ class RegisterCandidateRequest extends FormRequest
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['required', 'string', 'min:14', 'max:20'],
             'password' => ['required', 'string', 'min:8'],
-            'passwordConfirmation' => ['required', 'string', 'same:password'],
+            'password_confirmation' => ['required', 'string', 'same:password'],
             'resume' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
         ];
     }
