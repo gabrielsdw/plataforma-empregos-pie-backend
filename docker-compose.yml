@@ -1,7 +1,23 @@
+x-app-base: &app-base
+  build:
+    context: .
+    dockerfile: docker/php/Dockerfile
+  working_dir: /var/www
+  volumes:
+    - ./:/var/www
+  restart: unless-stopped
+
 services:
+  api:
+    <<: *app-base
+    container_name: api-empregos
+    command: sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000"
+    ports:
+      - "8000:8000"
+
   postgres:
     image: postgres:17
-    container_name: postgres-dev
+    container_name: postgres-empregos
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -9,7 +25,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_data_empregos:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
       interval: 5s
@@ -18,4 +34,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data_dev:
+  postgres_data_empregos:
