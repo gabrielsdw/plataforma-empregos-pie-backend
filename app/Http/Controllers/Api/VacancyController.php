@@ -16,6 +16,43 @@ class VacancyController extends BaseController
         $this->repository = $repository;
     }
 
+    public function index(): JsonResponse
+    {
+        try {
+            $response = $this->repository->listForAuthenticatedBusiness();
+
+            if ($this->repository::$hasError) {
+                return $this->error(
+                    $this->repository::$message,
+                    $this->repository::$statusCode
+                );
+            }
+
+            return $this->defaultJsonResponse(
+                $response,
+                $this->repository::$message,
+                $this->repository::$statusCode,
+            );
+        } catch (\Exception $e) {
+            return $this->error('Internal server error', 500, exception: $e);
+        }
+    }
+
+    public function published(): JsonResponse
+    {
+        try {
+            $response = $this->repository->listPublished();
+
+            return $this->defaultJsonResponse(
+                $response,
+                $this->repository::$message,
+                $this->repository::$statusCode,
+            );
+        } catch (\Exception $e) {
+            return $this->error('Internal server error', 500, exception: $e);
+        }
+    }
+
     public function store(StoreVacancyRequest $request): JsonResponse
     {
         try {
