@@ -1,59 +1,50 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Plataforma de Empregos PIE - API Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Esta é a API REST que serve de motor para a Plataforma de Empregos PIE. Foi desenvolvida utilizando o framework **Laravel** e fornece todos os serviços de autenticação, gestão de vagas e candidaturas.
 
-## About Laravel
+## 🛠️ Tecnologias e Dependências
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* **Framework Principal:** Laravel 11+ (PHP 8.2+)
+* **Autenticação:** JSON Web Tokens (JWT) via tymon/jwt-auth
+* **Base de Dados:** MySQL
+* **Ambiente Local:** Docker & Docker Compose
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Funcionalidades da API
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **Autenticação:** Registo de Candidatos, Registo de Empresas, Login unificado com emissão de token JWT e Gestão de sessão.
+* **Gestão de Vagas:** Criação, listagem, edição e remoção de vagas de emprego.
+* **Candidaturas:** Submissão de candidaturas por parte dos candidatos e visualização de inscritos por vaga (restrito a empresas).
 
-## Learning Laravel
+## 🔧 Instalação e Configuração Local
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Pré-requisitos: Docker e Docker Compose instalados (recomendado) ou ambiente PHP/Composer local.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Passo 1: Configurar as Variáveis de Ambiente
+Copie o ficheiro de exemplo e configure os acessos (as configurações padrão já estão preparadas para o Docker):
+    cp .env.example .env
 
-## Laravel Sponsors
+Passo 2: Instalar Dependências do Composer
+Instale os pacotes necessários do PHP:
+    composer install
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Passo 3: Subir o Ambiente Docker
+Inicie os contentores em segundo plano (servidor web e base de dados MySQL):
+    docker-compose up -d
 
-### Premium Partners
+Passo 4: Gerar as Chaves de Segurança
+Gere a chave da aplicação Laravel e a assinatura secreta do JWT:
+    php artisan key:generate
+    php artisan jwt:secret
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Passo 5: Preparar a Base de Dados
+Execute as migrações para criar as tabelas e o seeder para popular os dados iniciais:
+    php artisan migrate --seed
 
-## Contributing
+A API ficará disponível por padrão em: http://localhost:8000
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 📂 Estrutura de Pastas Chave
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+* app/Http/Controllers/Api/: Controladores que gerem as requisições HTTP e as respostas JSON.
+* app/Models/: Modelos de dados Eloquent (User, Vacancy, VacancyApplication).
+* app/Repositories/Api/: Camada de repositório isolando a lógica de consultas à base de dados.
+* routes/api.php: Ficheiro centralizador das rotas da API.
