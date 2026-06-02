@@ -18,7 +18,10 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd
 
 # Instalar extensão Redis usada pelo driver phpredis
-RUN pecl install redis && docker-php-ext-enable redis
+RUN mkdir -p /usr/src/php/ext/redis && \
+    curl -L https://github.com/phpredis/phpredis/archive/refs/tags/6.1.0.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 && \
+    echo 'redis' >> /usr/src/php-available-exts && \
+    docker-php-ext-install redis
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
