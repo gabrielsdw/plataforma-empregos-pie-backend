@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Vacancy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class VacancyApplicationTest extends TestCase
@@ -107,6 +108,7 @@ class VacancyApplicationTest extends TestCase
         $candidate = User::factory()->create([
             'role' => 'candidate',
             'name' => 'Maria Silva',
+            'resume_path' => 'resumes/maria-silva.pdf',
         ]);
         $vacancy = Vacancy::query()->create([
             'business_id' => $business->id,
@@ -138,6 +140,8 @@ class VacancyApplicationTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.candidate.name', 'Maria Silva')
+            ->assertJsonPath('data.0.candidate.resume_path', 'resumes/maria-silva.pdf')
+            ->assertJsonPath('data.0.candidate.resume_url', Storage::disk('public')->url('resumes/maria-silva.pdf'))
             ->assertJsonPath('data.0.vacancy.title', 'Desenvolvedor Backend')
             ->assertJsonPath('data.0.portfolio_url', 'https://portfolio.example.com/maria');
     }

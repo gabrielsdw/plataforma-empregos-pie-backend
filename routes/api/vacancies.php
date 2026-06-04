@@ -7,6 +7,7 @@ Route::middleware('auth:api')->prefix('vacancies')->group(function () {
     Route::get('/published', [VacancyController::class, 'published']);
     Route::get('/applicants', [VacancyController::class, 'applicants']);
     Route::get('/applications/me', [VacancyController::class, 'myApplications']);
+    Route::get('/applications/{applicationId}/resume', [VacancyController::class, 'downloadApplicantResume']);
     Route::get('/', [VacancyController::class, 'index']);
     Route::post('/', [VacancyController::class, 'store']);
     Route::get('/{vacancyId}', [VacancyController::class, 'show']);

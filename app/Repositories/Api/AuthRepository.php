@@ -6,6 +6,7 @@ namespace App\Repositories\Api;
 use App\Models\User;
 use App\Repositories\BaseRepository;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class AuthRepository extends BaseRepository
 {
@@ -40,9 +41,11 @@ class AuthRepository extends BaseRepository
     public function registerCandidate(array $data): array
     {
         $resumePath = null;
+        $resumeOriginalName = null;
 
         if (isset($data['resume']) && $data['resume'] instanceof UploadedFile) {
             $resumePath = $data['resume']->store('resumes', 'public');
+            $resumeOriginalName = $data['resume']->getClientOriginalName();
         }
 
         $user = User::query()->create([
@@ -52,6 +55,7 @@ class AuthRepository extends BaseRepository
             'phone' => $data['phone'],
             'password' => $data['password'],
             'resume_path' => $resumePath,
+            'resume_original_name' => $resumeOriginalName,
         ]);
 
         $token = auth('api')->login($user);
@@ -82,6 +86,51 @@ class AuthRepository extends BaseRepository
         static::$statusCode = 201;
 
         return $this->tokenPayload($token);
+    }
+
+    public function updateProfile(array $data): User|null
+    {
+        $user = auth('api')->user();
+
+        if (!$user instanceof User) {
+            static::$hasError = true;
+            static::$message = 'Unauthenticated';
+            static::$statusCode = 401;
+
+            return null;
+        }
+
+        if ($user->role === 'business') {
+            $user->update([
+                'name' => $data['company_name'],
+                'company_name' => $data['company_name'],
+                'email' => $data['email'],
+                'website' => $data['website'] ?? null,
+            ]);
+        } else {
+            $updates = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+            ];
+
+            if (isset($data['resume']) && $data['resume'] instanceof UploadedFile) {
+                if ($user->resume_path && Storage::disk('public')->exists($user->resume_path)) {
+                    Storage::disk('public')->delete($user->resume_path);
+                }
+
+                $updates['resume_path'] = $data['resume']->store('resumes', 'public');
+                $updates['resume_original_name'] = $data['resume']->getClientOriginalName();
+            }
+
+            $user->update($updates);
+        }
+
+        static::$hasError = false;
+        static::$message = 'Profile updated successfully';
+        static::$statusCode = 200;
+
+        return $user->fresh();
     }
 
     public function logout(): bool

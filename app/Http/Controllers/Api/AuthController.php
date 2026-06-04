@@ -7,6 +7,7 @@ use App\Http\Controllers\BaseController;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterBusinessRequest;
 use App\Http\Requests\Auth\RegisterCandidateRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Repositories\Api\AuthRepository;
 use Illuminate\Http\JsonResponse;
 
@@ -99,6 +100,25 @@ class AuthController extends BaseController
     {
         try {
             $response = $this->repository->me();
+
+            return $this->defaultJsonResponse(
+                $response,
+                $this->repository::$message,
+                $this->repository::$statusCode,
+            );
+        } catch (\Exception $e) {
+            return $this->error('Internal server error', 500, exception: $e);
+        }
+    }
+
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        try {
+            $response = $this->repository->updateProfile($request->validated());
+
+            if ($this->repository::$hasError) {
+                return $this->error($this->repository::$message, $this->repository::$statusCode);
+            }
 
             return $this->defaultJsonResponse(
                 $response,

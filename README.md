@@ -40,6 +40,10 @@ Passo 5: Preparar a Base de Dados
 Execute as migrações para criar as tabelas e o seeder para popular os dados iniciais:
     php artisan migrate --seed
 
+Passo 6: Expor o storage local
+Crie o link simbólico para servir ficheiros guardados no storage público local do Laravel:
+    php artisan storage:link
+
 A API ficará disponível por padrão em: http://localhost:8000
 
 ## 📂 Estrutura de Pastas Chave

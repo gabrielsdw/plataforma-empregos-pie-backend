@@ -7,7 +7,9 @@ namespace App\Repositories\Api;
 use App\Models\Vacancy;
 use App\Models\VacancyApplication;
 use App\Repositories\BaseRepository;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class VacancyRepository extends BaseRepository
 {
@@ -298,6 +300,66 @@ class VacancyRepository extends BaseRepository
         static::$statusCode = 201;
 
         return $application;
+    }
+
+    public function getApplicantResumeForAuthenticatedBusiness(int $applicationId): array|null
+    {
+        $user = auth('api')->user();
+
+        if (!$user || $user->role !== 'business') {
+            static::$hasError = true;
+            static::$message = 'Only authenticated businesses can download resumes';
+            static::$statusCode = 403;
+
+            return null;
+        }
+
+        $application = VacancyApplication::query()
+            ->with(['candidate:id,name,resume_path,resume_original_name', 'vacancy:id,business_id'])
+            ->where('id', $applicationId)
+            ->whereHas('vacancy', function ($query) use ($user) {
+                $query->where('business_id', $user->id);
+            })
+            ->first();
+
+        if (!$application) {
+            static::$hasError = true;
+            static::$message = 'Application not found';
+            static::$statusCode = 404;
+
+            return null;
+        }
+
+        $candidate = $application->candidate;
+        $resumePath = $candidate?->resume_path;
+
+        if (!$resumePath) {
+            static::$hasError = true;
+            static::$message = 'Resume not found';
+            static::$statusCode = 404;
+
+            return null;
+        }
+
+        $disk = Storage::disk('public');
+
+        if (!$disk->exists($resumePath)) {
+            static::$hasError = true;
+            static::$message = 'Resume file not found';
+            static::$statusCode = 404;
+
+            return null;
+        }
+
+        static::$hasError = false;
+        static::$message = 'Resume fetched successfully';
+        static::$statusCode = 200;
+
+        return [
+            'disk' => $disk,
+            'path' => $resumePath,
+            'download_name' => $candidate->resume_original_name ?: basename($resumePath),
+        ];
     }
 
     private function findOwnedByAuthenticatedBusiness(int $vacancyId): Vacancy|null

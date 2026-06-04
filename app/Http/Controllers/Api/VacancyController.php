@@ -9,6 +9,7 @@ use App\Http\Requests\Vacancy\ApplyToVacancyRequest;
 use App\Http\Requests\Vacancy\StoreVacancyRequest;
 use App\Repositories\Api\VacancyRepository;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class VacancyController extends BaseController
 {
@@ -209,6 +210,24 @@ class VacancyController extends BaseController
                 $this->repository::$message,
                 $this->repository::$statusCode,
             );
+        } catch (\Exception $e) {
+            return $this->error('Internal server error', 500, exception: $e);
+        }
+    }
+
+    public function downloadApplicantResume(int $applicationId): StreamedResponse|JsonResponse
+    {
+        try {
+            $response = $this->repository->getApplicantResumeForAuthenticatedBusiness($applicationId);
+
+            if ($this->repository::$hasError || !$response) {
+                return $this->error(
+                    $this->repository::$message,
+                    $this->repository::$statusCode
+                );
+            }
+
+            return $response['disk']->download($response['path'], $response['download_name']);
         } catch (\Exception $e) {
             return $this->error('Internal server error', 500, exception: $e);
         }
