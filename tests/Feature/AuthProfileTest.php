@@ -113,4 +113,28 @@ class AuthProfileTest extends TestCase
         $this->assertSame('resumes/existing-file.pdf', $candidate->resume_path);
         $this->assertSame('curriculo-joao.pdf', $candidate->resume_original_name);
     }
+
+    public function test_candidate_can_download_saved_resume(): void
+    {
+        Storage::fake('public');
+
+        $resumePath = UploadedFile::fake()->create('curriculo-ana.pdf', 120, 'application/pdf')
+            ->store('resumes', 'public');
+
+        $candidate = User::factory()->create([
+            'role' => 'candidate',
+            'resume_path' => $resumePath,
+            'resume_original_name' => 'curriculo-ana.pdf',
+        ]);
+
+        $token = auth('api')->login($candidate);
+
+        $response = $this
+            ->withHeader('Authorization', "Bearer {$token}")
+            ->get('/api/auth/resume');
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition', 'attachment; filename=curriculo-ana.pdf');
+    }
+
 }

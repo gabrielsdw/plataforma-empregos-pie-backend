@@ -10,6 +10,7 @@ use App\Http\Requests\Auth\RegisterCandidateRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
 use App\Repositories\Api\AuthRepository;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AuthController extends BaseController
 {
@@ -106,6 +107,21 @@ class AuthController extends BaseController
                 $this->repository::$message,
                 $this->repository::$statusCode,
             );
+        } catch (\Exception $e) {
+            return $this->error('Internal server error', 500, exception: $e);
+        }
+    }
+
+    public function downloadResume(): StreamedResponse|JsonResponse
+    {
+        try {
+            $response = $this->repository->getResumeForAuthenticatedCandidate();
+
+            if ($this->repository::$hasError || !$response) {
+                return $this->error($this->repository::$message, $this->repository::$statusCode);
+            }
+
+            return $response['disk']->download($response['path'], $response['download_name']);
         } catch (\Exception $e) {
             return $this->error('Internal server error', 500, exception: $e);
         }

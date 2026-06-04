@@ -88,6 +88,57 @@ class AuthRepository extends BaseRepository
         return $this->tokenPayload($token);
     }
 
+    public function getResumeForAuthenticatedCandidate(): ?array
+    {
+        $user = auth('api')->user();
+
+        if (!$user instanceof User) {
+            static::$hasError = true;
+            static::$message = 'Unauthenticated';
+            static::$statusCode = 401;
+
+            return null;
+        }
+
+        if ($user->role !== 'candidate') {
+            static::$hasError = true;
+            static::$message = 'Only authenticated candidates can download their resume';
+            static::$statusCode = 403;
+
+            return null;
+        }
+
+        $resumePath = $user->resume_path;
+
+        if (!$resumePath) {
+            static::$hasError = true;
+            static::$message = 'Resume not found';
+            static::$statusCode = 404;
+
+            return null;
+        }
+
+        $disk = Storage::disk('public');
+
+        if (!$disk->exists($resumePath)) {
+            static::$hasError = true;
+            static::$message = 'Resume file not found';
+            static::$statusCode = 404;
+
+            return null;
+        }
+
+        static::$hasError = false;
+        static::$message = 'Resume downloaded successfully';
+        static::$statusCode = 200;
+
+        return [
+            'disk' => $disk,
+            'path' => $resumePath,
+            'download_name' => $user->resume_original_name ?: basename($resumePath),
+        ];
+    }
+
     public function updateProfile(array $data): User|null
     {
         $user = auth('api')->user();
